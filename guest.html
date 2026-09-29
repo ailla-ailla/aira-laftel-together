@@ -1,13 +1,16 @@
 <!doctype html><html lang="ko"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><link rel="stylesheet" href="style.css"><main>
-<h1>LevKunimi · 같이 보기</h1><div class="mobileTop"><div class="row joinRow"><input id="name" value="Kunimi" placeholder="닉네임"><input id="r" placeholder="방 코드"><button id="j">방 들어가기</button></div><div id="st" class="status">대기 중</div></div>
-<div class="playerWrap"><video id="v" autoplay playsinline controls></video></div>
-<div class="cropRow"><button id="fit" class="active">전체 보기</button><button id="fill">영상 크게</button></div>
-<div class="chat"><div id="msgs"></div><div class="row"><input id="msg" placeholder="메시지"><button id="send">전송</button></div></div></main><script>
-let w,p,myName="Kunimi";const URL=(location.protocol==="https:"?"wss://":"ws://")+location.host;
-const $=x=>document.getElementById(x);
-function add(n,t,me=false){let d=document.createElement("div");if(me)d.className="me";d.textContent=n+": "+t;msgs.appendChild(d);msgs.scrollTop=msgs.scrollHeight}
-fit.onclick=()=>{v.style.objectFit="contain";fit.classList.add("active");fill.classList.remove("active")};
-fill.onclick=()=>{v.style.objectFit="cover";fill.classList.add("active");fit.classList.remove("active")};
-j.onclick=()=>{let room=r.value.trim().toUpperCase();myName=name.value.trim()||"Kunimi";if(!room)return;w=new WebSocket(URL);w.onopen=()=>{w.send(JSON.stringify({type:"join",role:"guest",room,name:myName}));st.textContent="방 "+room+" · 연결됨"};w.onmessage=async e=>{let m=JSON.parse(e.data);if(m.type==="offer"){p=new RTCPeerConnection({iceServers:[{urls:"stun:stun.l.google.com:19302"}]});p.ontrack=e=>{v.srcObject=e.streams[0];v.play().catch(()=>st.textContent="영상의 재생 버튼을 눌러줘")};p.onicecandidate=e=>e.candidate&&w.send(JSON.stringify({type:"ice",candidate:e.candidate}));await p.setRemoteDescription(m.offer);let a=await p.createAnswer();await p.setLocalDescription(a);w.send(JSON.stringify({type:"answer",answer:p.localDescription}))}if(m.type==="ice"&&p)try{await p.addIceCandidate(m.candidate)}catch{}if(m.type==="chat")add(m.name||"상대",m.text)}};
-function sc(){let t=msg.value.trim();if(!t||!w||w.readyState!==1)return;w.send(JSON.stringify({type:"chat",name:myName,text:t}));add("나",t,true);msg.value=""}send.onclick=sc;msg.onkeydown=e=>{if(e.key==="Enter")sc()};
+<h1>LevKunimi · 같이 보기</h1><div class="mobileTop"><div class="row joinRow"><input id="nickname" value="Kunimi" placeholder="닉네임"><input id="room" placeholder="방 코드"><button id="joinBtn">방 들어가기</button></div><div id="status" class="status">대기 중</div></div>
+<div class="playerWrap"><video id="video" autoplay playsinline controls></video></div><div class="cropRow"><button id="fit" class="active">전체 보기</button><button id="fill">영상 크게</button></div>
+<div class="chat"><div id="msgs"></div><div class="row"><input id="message" placeholder="메시지"><button id="sendBtn">전송</button></div></div></main><script>
+let ws,pc,myName="Kunimi";const clientId=crypto.randomUUID?crypto.randomUUID():Math.random().toString(36).slice(2);
+const WSURL=(location.protocol==="https:"?"wss://":"ws://")+location.host;
+const nickname=document.getElementById("nickname"),room=document.getElementById("room"),joinBtn=document.getElementById("joinBtn"),status=document.getElementById("status"),video=document.getElementById("video"),fit=document.getElementById("fit"),fill=document.getElementById("fill"),msgs=document.getElementById("msgs"),message=document.getElementById("message"),sendBtn=document.getElementById("sendBtn");
+function add(n,t,me=false){const d=document.createElement("div");if(me)d.className="me";d.textContent=n+": "+t;msgs.appendChild(d);msgs.scrollTop=msgs.scrollHeight}
+fit.onclick=()=>{video.style.objectFit="contain";fit.classList.add("active");fill.classList.remove("active")};
+fill.onclick=()=>{video.style.objectFit="cover";fill.classList.add("active");fit.classList.remove("active")};
+joinBtn.onclick=()=>{const code=room.value.trim().toUpperCase();myName=nickname.value.trim()||"Kunimi";if(!code){status.textContent="방 코드를 입력해줘";return}status.textContent="연결 중…";
+ws=new WebSocket(WSURL);ws.onopen=()=>{ws.send(JSON.stringify({type:"join",role:"guest",room:code,name:myName,id:clientId}));status.textContent="방 "+code+" · 연결됨"};
+ws.onerror=()=>status.textContent="연결 오류 · 다시 눌러줘";
+ws.onmessage=async e=>{const m=JSON.parse(e.data);if(m.type==="offer"){pc=new RTCPeerConnection({iceServers:[{urls:"stun:stun.l.google.com:19302"}]});pc.ontrack=e=>{video.srcObject=e.streams[0];video.play().catch(()=>status.textContent="영상의 재생 버튼을 눌러줘")};pc.onicecandidate=e=>e.candidate&&ws.send(JSON.stringify({type:"ice",candidate:e.candidate}));await pc.setRemoteDescription(m.offer);const a=await pc.createAnswer();await pc.setLocalDescription(a);ws.send(JSON.stringify({type:"answer",answer:pc.localDescription}))}else if(m.type==="ice"&&pc)try{await pc.addIceCandidate(m.candidate)}catch{}else if(m.type==="chat"&&m.id!==clientId)add(m.name||"상대",m.text)}};
+function sendChat(){const t=message.value.trim();if(!t||!ws||ws.readyState!==1)return;ws.send(JSON.stringify({type:"chat",name:myName,text:t,id:clientId}));add("나",t,true);message.value=""}sendBtn.onclick=sendChat;message.onkeydown=e=>{if(e.key==="Enter")sendChat()};
 </script>
