@@ -1,4 +1,7 @@
 const express=require("express"),http=require("http"),WebSocket=require("ws");
 const app=express();app.use(express.static(__dirname));const server=http.createServer(app),wss=new WebSocket.Server({server}),rooms=new Map();
 const send=(w,o)=>w&&w.readyState===1&&w.send(JSON.stringify(o));
-wss.on("connection",w=>{w.on("message",x=>{let m;try{m=JSON.parse(x)}catch{return}if(m.type==="join"){w.room=m.room;w.role=m.role;if(!rooms.has(w.room))rooms.set(w.room,new Set());rooms.get(w.room).add(w);for(const c of rooms.get(w.room))if(c!==w)send(c,{type:"peer"});return}for(const c of rooms.get(w.room)||[])if(c!==w)send(c,m)});w.on("close",()=>rooms.get(w.room)?.delete(w))});server.listen(process.env.PORT||3000);
+wss.on("connection",w=>{w.on("message",x=>{let m;try{m=JSON.parse(x)}catch{return}
+if(m.type==="join"){w.room=String(m.room||"").trim().toUpperCase();w.role=m.role;w.name=m.name||"손님";if(!rooms.has(w.room))rooms.set(w.room,new Set());rooms.get(w.room).add(w);for(const c of rooms.get(w.room))if(c!==w)send(c,{type:"peer"});return}
+for(const c of rooms.get(w.room)||[])if(c!==w)send(c,m)});
+w.on("close",()=>{let s=rooms.get(w.room);if(s){s.delete(w);if(!s.size)rooms.delete(w.room)}})});server.listen(process.env.PORT||3000);
