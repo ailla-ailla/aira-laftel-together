@@ -1,3 +1,3 @@
-LevKunimi Share + Chat v2
-화면/소리 실시간 공유에 양방향 닉네임 채팅을 결합한 버전입니다.
-기존 v1과 동일하게 사용하며 host.html과 guest.html 양쪽에서 채팅할 수 있습니다.
+LevKunimi Share + Chat v2.1
+v1에서 성공했던 화면 공유 흐름을 그대로 유지하고 양방향 채팅만 결합한 수정판입니다.
+PC: host.html / 폰: guest.html
