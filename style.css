@@ -7,3 +7,9 @@ video{width:100%;height:100%;object-fit:cover;background:#000}.chat{margin-top:1
 @media(max-width:600px){main{padding:10px}h1{font-size:18px}.playerWrap{border-radius:8px}#msgs{height:135px}.joinRow input:first-child{flex-basis:100%}}
 @media(orientation:landscape) and (max-height:600px){main{max-width:none;padding:0}.mobileTop,.chat,h1{display:none}.playerWrap{width:100vw;height:100vh;aspect-ratio:auto;border-radius:0}video{object-fit:contain}}
 .mobileTop.joined .joinRow{display:none}.mobileTop.joined .status{padding:3px 2px 6px;font-size:13px;text-align:right;opacity:.75}
+
+.guestHead{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.guestHead h1{margin:8px 0 12px}
+.togglePanel{padding:7px 11px;font-size:13px;background:#303039;white-space:nowrap}
+.mobileTop.collapsed{display:none}
+.hiddenStatus{display:none}
