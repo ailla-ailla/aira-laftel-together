@@ -1,20 +1,10 @@
 <!doctype html><html lang="ko"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><link rel="stylesheet" href="style.css"><main>
-<h1>LevKunimi · 보내기</h1><div class="row"><input id="name" placeholder="닉네임" value="아일라"><input id="r" placeholder="방 코드"><button id="g">코드 만들기</button><button id="s">화면 공유 시작</button></div><div id="st" class="status">대기 중</div>
+<h1>LevKunimi · 보내기</h1><div class="row"><input id="name" value="아일라" placeholder="닉네임"><input id="r" placeholder="방 코드"><button id="g">코드 만들기</button><button id="s">화면 공유 시작</button></div><div id="st" class="status">대기 중</div>
 <div class="chat"><div id="msgs"></div><div class="row"><input id="msg" placeholder="메시지"><button id="send">전송</button></div></div></main><script>
 let w,p,stream,myName="아일라";const URL=(location.protocol==="https:"?"wss://":"ws://")+location.host;
-const by=id=>document.getElementById(id),r=by("r"),g=by("g"),s=by("s"),st=by("st"),nameEl=by("name"),msgs=by("msgs"),msg=by("msg"),send=by("send");
-g.onclick=()=>r.value=Math.random().toString(36).slice(2,8).toUpperCase();
+const $=x=>document.getElementById(x);g.onclick=()=>r.value=Math.random().toString(36).slice(2,8).toUpperCase();
 function add(n,t,me=false){let d=document.createElement("div");if(me)d.className="me";d.textContent=n+": "+t;msgs.appendChild(d);msgs.scrollTop=msgs.scrollHeight}
 async function offer(){if(p)p.close();p=new RTCPeerConnection({iceServers:[{urls:"stun:stun.l.google.com:19302"}]});stream.getTracks().forEach(t=>p.addTrack(t,stream));p.onicecandidate=e=>e.candidate&&w.send(JSON.stringify({type:"ice",candidate:e.candidate}));let o=await p.createOffer();await p.setLocalDescription(o);w.send(JSON.stringify({type:"offer",offer:p.localDescription}))}
-s.onclick=async()=>{let room=r.value.trim().toUpperCase();myName=nameEl.value.trim()||"아일라";if(!room)return alert("방 코드를 만들어줘.");
-try{
-  /* v1과 동일하게 사용자 클릭 직후 가장 먼저 공유 선택창을 호출 */
-  stream=await navigator.mediaDevices.getDisplayMedia({video:true,audio:true});
-  w=new WebSocket(URL);
-  w.onopen=()=>{w.send(JSON.stringify({type:"join",role:"host",room,name:myName}));st.textContent="방 "+room+" · 공유 중"};
-  w.onmessage=async e=>{let m=JSON.parse(e.data);if(m.type==="peer")await offer();if(m.type==="answer"&&p)await p.setRemoteDescription(m.answer);if(m.type==="ice"&&p)try{await p.addIceCandidate(m.candidate)}catch{}if(m.type==="chat")add(m.name||"상대",m.text)};
-  stream.getVideoTracks()[0].onended=()=>st.textContent="공유 종료";
-}catch(e){st.textContent="공유 시작 실패: "+e.message}};
-function sendChat(){let t=msg.value.trim();if(!t||!w||w.readyState!==1)return;w.send(JSON.stringify({type:"chat",name:myName,text:t}));add("나",t,true);msg.value=""}
-send.onclick=sendChat;msg.onkeydown=e=>{if(e.key==="Enter")sendChat()};
+s.onclick=async()=>{let room=r.value.trim().toUpperCase();myName=name.value.trim()||"아일라";if(!room)return alert("방 코드를 만들어줘.");try{stream=await navigator.mediaDevices.getDisplayMedia({video:true,audio:true});w=new WebSocket(URL);w.onopen=()=>{w.send(JSON.stringify({type:"join",role:"host",room,name:myName}));st.textContent="방 "+room+" · 공유 중"};w.onmessage=async e=>{let m=JSON.parse(e.data);if(m.type==="peer")await offer();if(m.type==="answer"&&p)await p.setRemoteDescription(m.answer);if(m.type==="ice"&&p)try{await p.addIceCandidate(m.candidate)}catch{}if(m.type==="chat")add(m.name||"상대",m.text)};stream.getVideoTracks()[0].onended=()=>st.textContent="공유 종료"}catch(e){st.textContent="공유 시작 실패: "+e.message}};
+function sc(){let t=msg.value.trim();if(!t||!w||w.readyState!==1)return;w.send(JSON.stringify({type:"chat",name:myName,text:t}));add("나",t,true);msg.value=""}send.onclick=sc;msg.onkeydown=e=>{if(e.key==="Enter")sc()};
 </script>
